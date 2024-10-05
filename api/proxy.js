@@ -1,10 +1,9 @@
-// index.js
+// api/proxy.js
 const express = require('express');
 const cors = require('cors');
 const request = require('request');
-const app = express();
-const PORT = process.env.PORT || 3000;
 
+const app = express();
 app.use(cors());
 
 app.get('/proxy', (req, res) => {
@@ -22,7 +21,5 @@ app.get('/proxy', (req, res) => {
     });
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Export the app for Vercel
+module.exports = app;

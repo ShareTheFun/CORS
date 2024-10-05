@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>YouTube Video Downloader</h1>
+    <input type="text" id="ytUrl" placeholder="Enter YouTube URL">
+    <button id="fetchButton">Fetch Video Details</button>
+    <div class="result" id="result">
+        <h2 id="videoTitle"></h2>
+        <p id="videoDesc"></p>
+    </div>
+    <script>
+        document.getElementById('fetchButton').onclick = function() {
+            const ytUrl = document.getElementById('ytUrl').value.trim();
+            const apiUrl = `https://your-vercel-app-url/api/proxy?url=https://luffy-api.onrender.com/ytdl?link=${encodeURIComponent(ytUrl)}`;
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status) {
+                        document.getElementById('videoTitle').textContent = data.data.title || 'No title found';
+                        document.getElementById('videoDesc').textContent = data.data.desc || 'No description found';
+                        document.getElementById('result').style.display = 'block';
+                    } else {
+                        alert('Failed to fetch video details. Please check the URL.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching the video details.');
+                });
+        };
+    </script>
+</body>
+    </html>
+    
