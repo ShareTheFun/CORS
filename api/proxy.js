@@ -26,16 +26,28 @@ app.get('/api/*', (req, res) => {
     }
 
     // Forward the request to the target URL
-    request({ url: targetUrl, method: 'GET' })
-        .on('response', (response) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            res.set('Content-Type', response.headers['content-type']);
-            response.pipe(res);
-        })
-        .on('error', (error) => {
+    request({ url: targetUrl, method: 'GET' }, (error, response, body) => {
+        if (error) {
             console.error('Error fetching the target URL:', error);
-            res.status(500).json({ message: 'Error fetching the target URL' });
-        });
+            return res.status(500).json({ message: 'Error fetching the target URL' });
+        }
+
+        // Log the response body for debugging
+        console.log('Response Body:', body);
+
+        // Set CORS headers
+        res.set('Access-Control-Allow-Origin', '*');
+
+        // Try to parse the body as JSON
+        try {
+            const jsonResponse = JSON.parse(body);
+            res.json(jsonResponse);
+        } catch (parseError) {
+            console.error('Failed to parse JSON:', parseError);
+            // If parsing fails, send the raw body with a 200 status
+            res.status(200).send(body); // Send as plain text
+        }
+    });
 });
 
 // Start the server
