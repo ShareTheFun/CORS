@@ -1,25 +1,44 @@
-// api/proxy.js
 const express = require('express');
 const cors = require('cors');
 const request = require('request');
-
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Use CORS
 app.use(cors());
 
-app.get('/proxy', (req, res) => {
-    const url = req.query.url; // Extract the URL from query parameters
-    if (!url) {
-        return res.status(400).json({ error: 'No URL provided' });
+// Endpoint to handle requests
+app.get('/api/*', (req, res) => {
+    // Get the target URL from the request path
+    const targetUrl = req.url.replace('/api/', '');
+
+    // Log the target URL for debugging
+    console.log('Target URL:', targetUrl);
+
+    // Check for required headers
+    const origin = req.headers.origin;
+    const xRequestedWith = req.headers['x-requested-with'];
+
+    if (!origin && !xRequestedWith) {
+        return res.status(400).json({
+            message: "Missing required request header. Must specify one of: origin, x-requested-with"
+        });
     }
 
-    request(url, (error, response, body) => {
-        if (error) {
-            return res.status(500).json({ error: 'Failed to fetch the URL' });
-        }
-        res.setHeader('Access-Control-Allow-Origin', '*'); // Set CORS headers
-        res.status(response.statusCode).send(body); // Forward the response body
-    });
+    // Forward the request to the target URL
+    request({ url: targetUrl, method: 'GET' })
+        .on('response', (response) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            res.set('Content-Type', response.headers['content-type']);
+            response.pipe(res);
+        })
+        .on('error', (error) => {
+            console.error('Error fetching the target URL:', error);
+            res.status(500).json({ message: 'Error fetching the target URL' });
+        });
 });
 
-// Export the app for Vercel
-module.exports = app;
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
